@@ -59,4 +59,8 @@ echo "Chequear web en http://$HOST_IP:$PORT"
 
 #Cheque servicio activo
 echo "Servicio activo?"
-curl http://$HOST_IP:$PORT
+if nc -vz -w1 $HOST_IP $PORT 2>/dev/null; then
+    echo "La web está en linea"
+else
+    echo "La web no funciona"
+fi
