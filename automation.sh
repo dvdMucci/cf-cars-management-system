@@ -1,25 +1,51 @@
 #!/bin/bash
 
+#modo depuracion descomentar el set -x
+#set -x
+
+# Colores para mensajes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
 #variables
 TEMP_DIR="tempdir"
 DOCKER_IMAGE="cars-management-app"
 CONTAINER_NAME="cars-management-container"
 PORT=3000
 
-#Eliminar Dockers antiguos
-docker rm -f $CONTAINER_NAME
-docker rmi -f $DOCKER_IMAGE
+print_message() {
+    local color=$1
+    local message=$2
+    echo -e "${color}${message}${NC}"
+}
 
+check_tools(){
+    if command -v $1 &>/dev/null; then 
+        print_message $GREEN "$1 está instalado."
+    else 
+        print_message $RED "$1 no está instalado. Por favor, instale $1 e intente nuevamente."
+        exit 1
+    fi
+}
+
+check_tools docker
+
+#Eliminar Dockers antiguos
+print_message $YELLOW "Eliminando contenedores antiguos..."
+docker rm -f $CONTAINER_NAME &>/dev/null || true
+docker rmi -f $DOCKER_IMAGE &>/dev/null || true
 
 #Crear la estructura de directorios
-echo "Crea carpetas del proyecto"
+print_message $YELLOW "Creando estructura de directorios..."
 mkdir -p $TEMP_DIR/{public,src}
 cp -r src/* $TEMP_DIR/src/
 cp -r public/* $TEMP_DIR/public/
 cp package*.json server.js $TEMP_DIR/
 
 #Crear Dockerfile
-echo "Crea el Dockerfile"
+print_message $YELLOW "Creando estructura de directorios..."
 cat <<EOF > $TEMP_DIR/Dockerfile
 FROM node:18-alpine
 LABEL org.opencontainers.image.authors="RoxsRoss"
@@ -33,34 +59,40 @@ CMD ["npm", "start"]
 EOF
 
 #Crea docker image
-echo "Crea la imagen de Docker"
+print_message $YELLOW "Construyendo imagen Docker..."
 docker build -t $DOCKER_IMAGE $TEMP_DIR
 
 #Iniciar contenedor
-echo "Inicia el contenedor"
+print_message $YELLOW "Listando contenedores..."
 docker run -d -p $PORT:$PORT --name $CONTAINER_NAME $DOCKER_IMAGE
 
 #Le doy tiempo al contenedor  
-echo "Espero unos segundos a que arranque el contenedor"
+print_message $YELLOW "Espero unos segundos a que arranque el contenedor"
 sleep 3
 
 #Ver logs
-echo "Mostrar logs"
+print_message $YELLOW "Mostrando logs del contenedor..."
 docker logs $CONTAINER_NAME
 
-
 #mostrar ip
-echo "Mostrar ip"
-CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_NAME)
-echo "IP del contenedor $CONTAINER_IP"
+print_message $YELLOW "Obteniendo dirección IP del host..."
 HOST_IP=$(hostname -I | awk '{print $1}')
-echo "IP del host $HOST_IP"
-echo "Chequear web en http://$HOST_IP:$PORT"
+print_message $GREEN "Dirección IP del host: $HOST_IP"
+print_message $YELLOW "Obteniendo dirección IP del contenedor..."
+CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_NAME)
+print_message $GREEN "Dirección IP del contenedor: $CONTAINER_IP"
+print_message $GREEN "Chequear web en http://$HOST_IP:$PORT"
 
 #Cheque servicio activo
-echo "Servicio activo?"
+print_message $YELLOW "Probando contenedor..."
 if nc -vz -w1 $HOST_IP $PORT 2>/dev/null; then
-    echo "La web está en linea"
+    print_message $GREEN "La web está en linea"
 else
-    echo "La web no funciona"
+    print_message $RED "La web no funciona"
 fi
+
+### limpieza del directorio temporal
+print_message $GREEN "Limpiando directorio temporal..."
+rm -rf $TEMP_DIR
+
+set +x
