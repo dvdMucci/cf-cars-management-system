@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Colores para mensajes
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -35,4 +36,4 @@ cd ~/
 git clone https://github.com/dvdMucci/cf-cars-management-system/
 cd cf-cars-management-system
 print_message -e $YELLOW "Se ejecuta automatizacion de tareas"
-sh automation.sh
+bash automation.sh
