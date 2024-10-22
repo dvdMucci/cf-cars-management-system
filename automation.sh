@@ -23,9 +23,9 @@ print_message() {
 
 check_tools(){
     if command -v $1 &>/dev/null; then 
-        print_message $GREEN "$1 está instalado."
+        print_message $GREEN "$1 esta instalado."
     else 
-        print_message $RED "$1 no está instalado. Por favor, instale $1 e intente nuevamente."
+        print_message $RED "$1 no esta instalado. Por favor, instale $1 e intente nuevamente."
         exit 1
     fi
 }
@@ -75,12 +75,12 @@ print_message $YELLOW "Mostrando logs del contenedor..."
 docker logs $CONTAINER_NAME
 
 #mostrar ip
-print_message $YELLOW "Obteniendo dirección IP del host..."
+print_message $YELLOW "Obteniendo direccion IP del host..."
 HOST_IP=$(hostname -I | awk '{print $1}')
-print_message $GREEN "Dirección IP del host: $HOST_IP"
-print_message $YELLOW "Obteniendo dirección IP del contenedor..."
+print_message $GREEN "Direccion IP del host: $HOST_IP"
+print_message $YELLOW "Obteniendo direccion IP del contenedor..."
 CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_NAME)
-print_message $GREEN "Dirección IP del contenedor: $CONTAINER_IP"
+print_message $GREEN "Direccion IP del contenedor: $CONTAINER_IP"
 print_message $GREEN "Chequear web en http://$HOST_IP:$PORT"
 
 #Cheque servicio activo
